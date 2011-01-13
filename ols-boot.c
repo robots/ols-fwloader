@@ -259,6 +259,9 @@ uint8_t BOOT_Reset(struct ols_boot_t *ob)
 
 	cmd.header.cmd = BOOT_RESET;
 	BOOT_Send(ob, &cmd);
+
+	// device wont exist after reset
+	ob->attach = 0;
 }
 
 

@@ -17,7 +17,8 @@ enum {
 	CMD_READ = 1,
 	CMD_WRITE = 2,
 	CMD_VERIFY = 4,
-	CMD_ERASE = 8
+	CMD_ERASE = 8,
+	CMD_RESET = 16
 };
 
 enum {
@@ -32,6 +33,7 @@ void usage()
 	printf("  -E      - erase flash\n");
 	printf("  -W      - erase and write flash with wfile\n");
 	printf("  -R      - read flash to rfile\n");
+	printf("  -T      - reset device at the end\n");
 	printf("  -p pid  - Set usb PID\n");
 	printf("  -v vid  - Set usb VID\n");
 	printf("  -t type - File type (BIN/HEX) (default: BIN)\n");
@@ -73,7 +75,7 @@ int main(int argc, char** argv)
 	fo = GetFileOps("BIN");
 
 	// parse args
-	while ((opt = getopt(argc, argv, "WRVEr:w:v:p:t:h")) != -1) {
+	while ((opt = getopt(argc, argv, "WRVETr:w:v:p:t:h")) != -1) {
 		switch (opt) {
 			case 'h':
 				usage();
@@ -90,6 +92,9 @@ int main(int argc, char** argv)
 				break;
 			case 'V':
 				cmd |= CMD_VERIFY;
+				break;
+			case 'T':
+				cmd |= CMD_RESET;
 				break;
 			case 'v': // vid
 				vid = atoi(optarg);
@@ -194,6 +199,11 @@ int main(int argc, char** argv)
 		} else {
 			printf("Verify failed :(\n");
 		}
+	}
+
+	if (cmd & CMD_RESET) {
+		printf("Reseting device \n");
+		BOOT_Reset(ob);
 	}
 
 	// free allocated memory
