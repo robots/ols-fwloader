@@ -1,0 +1,11 @@
+This is commandline utility for Diolan bootloader.
+
+OLS - Logic analyzer (http://dangerousprototypes.com/docs/Open_Bench_Logic_Sniffer)
+
+OLS uses modified bootloader. The original fw_update tool does make life harder.
+I have therefore created this tool. Simple, yet effective.
+
+License is yet to be added. For now assume GPLv3 license.
+
+
+Furure plan includes integration with ols-loader.
