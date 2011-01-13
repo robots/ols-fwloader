@@ -188,12 +188,14 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 	boot_rsp rsp;
 	uint16_t address = 0;
 	uint16_t len;
+	int flush = 0;
 	int ret;
 
 	address = addr;
 	memset(&cmd, 0, sizeof(cmd));
 
 	while (size > 0) {
+#if OLS_PAGE_SIZE == 2
 		len = (size > OLS_PAGE_SIZE) ? OLS_PAGE_SIZE : size;
 		len = (len % 2) ? len + 1: len; // round odd 
 
@@ -202,10 +204,26 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 
 		cmd.write_flash.addr_hi = (address >> 8) & 0xff;
 		cmd.write_flash.addr_lo = address & 0xff;
-		cmd.write_flash.size8 = len; // round odd 
+		cmd.write_flash.size8 = len; 
 		cmd.write_flash.flush = 0xff;
 		memcpy(cmd.write_flash.data, buf, len);
+#elif OLS_PAGE_SIZE == 64
+		len = (size > (OLS_PAGE_SIZE/2)) ? OLS_PAGE_SIZE/2 : size;
+		len = (len % 2) ? len + 1: len; // round odd 
 
+		cmd.header.cmd = BOOT_WRITE_FLASH;
+		cmd.header.echo = ob->cmd_id ++;
+
+		cmd.write_flash.addr_hi = (address >> 8) & 0xff;
+		cmd.write_flash.addr_lo = address & 0xff;
+		cmd.write_flash.size8 = len; 
+		cmd.write_flash.flush = (flush==0)?0:0xff;
+		memcpy(cmd.write_flash.data, buf, len);
+
+		flush ^= 1; // toggle flush
+#else 
+#error "Unsupported page size"
+#endif
 		if (address < OLS_FLASH_ADDR) {
 			fprintf(stderr, "Protecting bootloader - skip @0x%04x\n", address);
 		} if (address + len >= OLS_FLASH_ADDR + OLS_FLASH_SIZE) {
