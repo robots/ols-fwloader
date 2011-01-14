@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 		printf("Reading flash ...\n");
 		// reads whole flash (inc bootloader)
 		BOOT_Read(ob, 0x0000, bin_buf, OLS_FLASH_TOTSIZE);
-		BIN_WriteFile(file_read, bin_buf, OLS_FLASH_TOTSIZE);
+		fo->WriteFile(file_read, bin_buf, OLS_FLASH_TOTSIZE);
 	}
 
 	// writing implies erase
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
 
 	if (cmd & CMD_WRITE) {
 		uint32_t max_addr;
-		max_addr = BIN_ReadFile(file_write, bin_buf, OLS_FLASH_TOTSIZE);
+		max_addr = fo->ReadFile(file_write, bin_buf, OLS_FLASH_TOTSIZE);
 		printf("Writing flash ... (0x%04x - 0x%04x) \n", OLS_FLASH_ADDR, max_addr);
 		// we write only application
 		BOOT_Write(ob, OLS_FLASH_ADDR, &bin_buf[OLS_FLASH_ADDR], max_addr - OLS_FLASH_ADDR);
@@ -190,7 +190,7 @@ int main(int argc, char** argv)
 		uint32_t max_addr;
 		// read the whole flash
 		printf("Checking flash ...\n");
-		max_addr = BIN_ReadFile(file_write, bin_buf_tmp, OLS_FLASH_TOTSIZE);
+		max_addr = fo->ReadFile(file_write, bin_buf_tmp, OLS_FLASH_TOTSIZE);
 		BOOT_Read(ob, 0x0000, bin_buf, OLS_FLASH_TOTSIZE);
 
 		// compare only application
