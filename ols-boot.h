@@ -8,13 +8,18 @@
 #define OLS_PID         0xfc90
 
 #define OLS_TIMEOUT     1000
-#define OLS_PAGE_SIZE   2
+#define OLS_PAGE_SIZE   64
 #define OLS_READ_SIZE   (sizeof(rsp.read_flash.data))
 
 #define OLS_FLASH_SIZE  0x3400 // 16*0x400 - 3*0x400
 #define OLS_FLASH_ADDR  0x0800 // protect bootloader
 
 #define OLS_FLASH_TOTSIZE 0x4000
+
+enum {
+	OLS_WRITE_FLUSH = 1,
+	OLS_WRITE_2BYTE = 2,
+};
 
 struct ols_boot_t {
 	libusb_context *ctx;

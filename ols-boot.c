@@ -201,6 +201,8 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		len = (len % 2) ? len + 1: len; // round odd
 
 		memcpy(cmd.write_flash.data, buf, len);
+		// command bootloader to only write 2 bytes
+		cmd.write_flash.flush = OLS_WRITE_2BYTE | OLS_WRITE_FLUSH;
 #elif OLS_PAGE_SIZE == 64
 		flush ^= 1; // toggle flush
 
@@ -212,6 +214,8 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		// in this mode we always write 32 bytes
 		// rest is padded with 0xff
 		len = OLS_PAGE_SIZE/2;
+		// command bootloader to write 64bytes
+		cmd.write_flash.flush = flush & OLS_WRITE_FLUSH;
 #else 
 #error "Unsupported page size"
 #endif
@@ -222,7 +226,6 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		cmd.write_flash.addr_hi = (address >> 8) & 0xff;
 		cmd.write_flash.addr_lo = address & 0xff;
 		cmd.write_flash.size8 = len; 
-		cmd.write_flash.flush = (flush==0)?0:0xff;
 
 		if (address < OLS_FLASH_ADDR) {
 			fprintf(stderr, "Protecting bootloader - skip @0x%04x\n", address);
