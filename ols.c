@@ -59,6 +59,7 @@ struct ols_t *OLS_Init(char *port, unsigned long speed)
 
 	ols->fd = fd;
 	ols->verbose = 0;
+	ols->flash = NULL;
 
 	ret = OLS_GetID(ols);
 	if (ret) {
@@ -233,6 +234,7 @@ int OLS_EnterRunMode(struct ols_t *ols)
 	printf("OLS switched to RUN mode\n");
 	return 0;
 }
+
 /*
  * ask the OLS for JEDEC id
  * ols->fd - fd of ols com port
@@ -257,14 +259,13 @@ int OLS_GetFlashID(struct ols_t *ols) {
 
 	for (i = 0; i < OLS_FLASH_NUM; i++) {
 		if (memcmp(ret, OLS_Flash[i].jedec_id, 4) == 0) {
-			ols->flash_id = i;
 			ols->flash = (struct ols_flash_t *)&OLS_Flash[i];
 			printf("Found flash: %s \n", OLS_Flash[i].name);
 			break;
 		}
 	}
 
-	if(ols->flash_id == -1) {
+	if(ols->flash == NULL) {
 		printf("Error - unknown flash type (%02x %02x %02x %02x)\n", ret[0], ret[1], ret[2], ret[3]);
 		return -1;
 	}
@@ -283,7 +284,7 @@ int OLS_FlashErase(struct ols_t *ols)
 	int res;
 	int retry = 0;
 
-	if (ols->flash_id == -1) {
+	if (ols->flash == NULL) {
 		printf("Cannot erase unknown flash\n");
 		return -3;
 	}
@@ -317,8 +318,6 @@ int OLS_FlashErase(struct ols_t *ols)
 			printf("failed :( - timeout\n");
 			return -1;
 		}
-
-
 	}
 
 	return 0;
@@ -335,7 +334,7 @@ int OLS_FlashRead(struct ols_t *ols, uint16_t page, uint8_t *buf)
 	uint8_t cmd[4] = {0x03, 0x00, 0x00, 0x00};
 	int res;
 
-	if (ols->flash_id == -1) {
+	if (ols->flash == NULL) {
 		printf("Cannot READ  unknown flash\n");
 		return -3;
 	}
@@ -387,13 +386,13 @@ int OLS_FlashWrite(struct ols_t *ols, uint16_t page, uint8_t *buf)
 	uint8_t chksum;
 	int res;
 
-	if (ols->flash_id == -1) {
-		printf("Cannot READ  unknown flash\n");
+	if (ols->flash == NULL) {
+		printf("Cannot Write unknown flash\n");
 		return -3;
 	}
 
 	if (page > ols->flash->pages) {
-		printf("You are trying to read page %d, but we have only %d !\n", page, ols->flash->pages);
+		printf("You are trying to Write page %d, but we have only %d !\n", page, ols->flash->pages);
 		return -2;
 	}
 

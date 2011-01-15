@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 	int error = 0;
 	int ret;
 	int i;
+	uint16_t pages;
 
 	// aguments
 	struct file_ops_t *fo;
@@ -265,7 +266,6 @@ int main(int argc, char** argv)
 
 		if (device & DEV_APP) {
 			int i;
-			uint16_t pages;
 			if (page_limit != 0) {
 				pages = page_limit;
 			} else {
@@ -318,7 +318,6 @@ int main(int argc, char** argv)
 		printf("Reading file '%s'\n", file_write);
 		max_addr = fo->ReadFile(file_write, bin_buf, bin_buf_size);
 		if (device & DEV_APP) {
-			uint16_t pages;
 			int i;
 			// determine number of pages (round up)
 			if (page_limit != 0) {
@@ -356,25 +355,32 @@ int main(int argc, char** argv)
 		max_addr = fo->ReadFile(file_write, bin_buf_tmp, bin_buf_size);
 		if (device & DEV_APP) {
 			int i;
-			uint16_t pages;
+			int error = 0;
 			if (page_limit != 0) {
 				pages = page_limit;
 			} else {
-				pages = ols->flash->pages;
+				pages = (max_addr + ols->flash->page_size - 1) / ols->flash->page_size;
 			}
 			pages = (pages > ols->flash->pages) ? ols->flash->pages : pages;
 			for (i = 0; i < pages; i ++) {
+				uint32_t off;
+				off = ols->flash->page_size * i;
 				// read i-th page into buffer
-				ret = OLS_FlashRead(ols, i, bin_buf + (ols->flash->page_size * i));
+				ret = OLS_FlashRead(ols, i, bin_buf + off);
 				if (ret) {
 					exit(1);
 				}
+				if ((i % 32) == 0) {
+					printf(".");
+					fflush(stdout);
+				}
 			}
-			// compare only application
-			if (memcmp(bin_buf, bin_buf_tmp, pages * ols->flash->page_size) == 0) {
-				printf("Verified OK! :)\n");
+			printf("\n");
+			// compare page by page
+			if (memcmp(bin_buf, bin_buf_tmp, max_addr)) {
+				printf("Verify error\n");
 			} else {
-				printf("Verify failed :(\n");
+				printf("Verify OK\n");
 			}
 		} else {
 			ret = BOOT_Read(ob, 0x0000, bin_buf, OLS_FLASH_TOTSIZE);

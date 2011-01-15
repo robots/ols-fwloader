@@ -15,7 +15,6 @@ struct ols_flash_t {
 
 struct ols_t {
 	int fd;
-	int flash_id;
 	struct ols_flash_t *flash;
 	int verbose;
 };
