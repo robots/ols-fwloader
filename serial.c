@@ -79,6 +79,8 @@ int serial_setup(int fd, unsigned long speed)
 	t_opt.c_cflag |= CS8;
 	t_opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
 	t_opt.c_iflag &= ~(IXON | IXOFF | IXANY);
+	t_opt.c_iflag &= ~(ICRNL | INLCR);
+	t_opt.c_oflag &= ~(OCRNL | ONLCR);
 	t_opt.c_oflag &= ~OPOST;
 	t_opt.c_cc[VMIN] = 0;
 	t_opt.c_cc[VTIME] = 10;
