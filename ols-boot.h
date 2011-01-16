@@ -2,7 +2,17 @@
 #define BOOT_h_
 
 #include <stdint.h>
+#ifdef WIN32
+#include <wtypes.h>
+#include <sal.h>
+#include <sal_supp.h>
+#include <driverspecs.h>
+#include <windows.h>
+#include <api/hidsdi.h>
+#include <setupapi.h>
+#else
 #include <libusb.h>
+#endif
 
 #define OLS_VID         0x04d8
 #define OLS_PID         0xfc90
@@ -22,9 +32,12 @@ enum {
 };
 
 struct ols_boot_t {
+#ifdef WIN32
+	HANDLE hDevice;
+#else
 	libusb_context *ctx;
 	libusb_device_handle *dev;
-
+#endif
 	int attach;
 
 	uint8_t cmd_id;
