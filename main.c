@@ -203,7 +203,17 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if (((device & 3) == 0) || (cmd == 0) || (error)) {
+	if (device & 3 == 0) {
+		fprintf(stderr, "Device not set\n");
+		error = 1;
+	}
+
+	if (cmd == 0) {
+		fprintf(stderr, "Missing command\n");
+		error = 1;
+	}
+
+	if ((error)) {
 		usage();
 		exit(1);
 	}
