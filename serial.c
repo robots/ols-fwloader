@@ -139,9 +139,9 @@ int serial_read(int fd, char *buf, int size)
 	ret = ReadFile(hCom, buf, size, &bread, NULL);
 
 	if( ret == FALSE || ret==-1 ) {
-		len= -1;
+		len = -1;
 	} else {
-		len=bread;
+		len = bread;
 	}
 
 #else

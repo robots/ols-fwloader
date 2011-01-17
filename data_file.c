@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "data_file.h"
 
@@ -29,7 +30,7 @@ struct file_ops_t *GetFileOps(char *name)
 	int i;
 
 	for (i = 0; i < FILE_OPS_CNT; i++) {
-		if (strcmp(name, file_ops[i].name) == 0) {
+		if (strcasecmp(name, file_ops[i].name) == 0) {
 			return (struct file_ops_t *)&file_ops[i];
 		}
 	}

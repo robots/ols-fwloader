@@ -168,9 +168,9 @@ int main(int argc, char** argv)
 					fprintf(stderr, "Two devices ??\n");
 					exit(-1);
 				}
-				if (strncmp(optarg, "APP", 3) == 0) {
+				if (strncasecmp(optarg, "APP", 3) == 0) {
 					device |= DEV_APP;
-				} else if (strncmp(optarg, "BOOT", 4) == 0) {
+				} else if (strncasecmp(optarg, "BOOT", 4) == 0) {
 					device |= DEV_BOOT;
 				} else {
 					fprintf(stderr, "Unknown device specified\n");
