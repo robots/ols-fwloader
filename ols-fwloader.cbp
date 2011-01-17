@@ -31,9 +31,6 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-DWIN32=1" />
-			<Add directory="C:\ols-fwloader\" />
-			<Add directory="C:\Program Files\CodeBlocks\MinGW\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-lsetupapi" />
