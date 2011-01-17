@@ -3,18 +3,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifdef WIN32
-#include <wtypes.h>
-#include <sal.h>
-#include <sal_supp.h>
-#include <driverspecs.h>
-#include <windows.h>
-#include <api/hidsdi.h>
-#include <setupapi.h>
-#else
-#include <libusb.h>
-#endif
-
 #include "boot_if.h"
 #include "ols-boot.h"
 
@@ -50,10 +38,10 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 		return NULL;
 	}
 	DevInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
-	
+
 	// iterate thgough all HID devices
 	// this part is inspirated by Diolan's fw_update
-	while(true)
+	while(1)
 	{
 		int bad = 0;
 
@@ -100,9 +88,9 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 		if (bad > 1) {
 			CloseHandle(hHidDevice);
 		}
-	
+
 		free(pDetails);
-		DevIndex++
+		DevIndex++;
 	}
 	SetupDiDestroyDeviceInfoList(hDevInfo);
 #else
@@ -155,7 +143,7 @@ static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 
 	read_over.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-	if ((!ReadFile(m_hDevice, read_buf, sizeof(boot_rsp)+1, &readed, &read_over))	&& (GetLastError() != ERROR_IO_PENDING)) {
+	if ((!ReadFile(ob->hDevice, read_buf, sizeof(boot_rsp)+1, &readed, &read_over))	&& (GetLastError() != ERROR_IO_PENDING)) {
 		fprintf(stderr, "LastError = %d\n", GetLastError());
 		return 3;
 	}
@@ -164,12 +152,13 @@ static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 		fprintf(stderr, "Write timeout\n");
 		return 2;
 	}
-	if ((!GetOverlappedResult(m_hDevice, &read_over, &readed, FALSE)) || (readed != sizeof(boot_rsp) + 1)) {
-		eTrace2("LastError = %d, readed = %d", GetLastError(), readed);
+	if ((!GetOverlappedResult(ob->hDevice, &read_over, &readed, FALSE)) || (readed != sizeof(boot_rsp) + 1)) {
+		fprintf(stderr, "LastError = %d, readed = %d\n", GetLastError(), readed);
 		return 1;
 	}
 	memcpy(rsp, read_buf + 1, sizeof(boot_rsp));
 	CloseHandle(read_over.hEvent);
+	return 0;
 #else
 	int ret;
 	int len;
@@ -191,9 +180,9 @@ static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 		fprintf(stderr, "Device disconnected \n");
 		return 4;
 	}
-#endif
-	fprintf(stderr, "Other error \n");
+	fprintf(stderr, "Other error - recv \n");
 	return 5;
+#endif
 }
 
 static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
@@ -210,8 +199,8 @@ static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
 	write_buf[0] = 0;
 	memcpy(write_buf + 1, cmd, sizeof(boot_cmd));
 
-	write_res = WriteFile(m_hDevice, write_buf, sizeof(boot_cmd) + 1, &written, &write_over);
-	if ((!write_res) && (GetLastError() != ERROR_IO_PENDING)) { 
+	write_res = WriteFile(ob->hDevice, write_buf, sizeof(boot_cmd) + 1, &written, &write_over);
+	if ((!write_res) && (GetLastError() != ERROR_IO_PENDING)) {
 		fprintf(stderr, "LastError = %d\n", GetLastError());
 		return 2;
 	}
@@ -223,7 +212,7 @@ static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
 	return 0;
 #else
 	int ret;
-	
+
 	ret = libusb_control_transfer(ob->dev, 0x21, 0x09, 0x0000, 0x0000, (uint8_t *)cmd, sizeof(boot_cmd), OLS_TIMEOUT);
 	if (ret == sizeof(boot_cmd)) {
 		return 0;
@@ -275,7 +264,7 @@ uint8_t BOOT_Version(struct ols_boot_t *ob)
 	cmd.header.cmd = BOOT_GET_FW_VER;
 
 	ret = BOOT_SendRecv(ob, &cmd, &rsp);
-	
+
 	if (ret) {
 		return 1;
 	}
@@ -354,7 +343,7 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		len = OLS_PAGE_SIZE/2;
 		// command bootloader to write 64bytes
 		cmd.write_flash.flush = flush & OLS_WRITE_FLUSH;
-#else 
+#else
 #error "Unsupported page size"
 #endif
 
@@ -363,7 +352,7 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 
 		cmd.write_flash.addr_hi = (address >> 8) & 0xff;
 		cmd.write_flash.addr_lo = address & 0xff;
-		cmd.write_flash.size8 = len; 
+		cmd.write_flash.size8 = len;
 
 		if (address < OLS_FLASH_ADDR) {
 			fprintf(stderr, "Protecting bootloader - skip @0x%04x\n", address);

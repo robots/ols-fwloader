@@ -4,11 +4,8 @@
 #include <stdint.h>
 #ifdef WIN32
 #include <wtypes.h>
-#include <sal.h>
-#include <sal_supp.h>
-#include <driverspecs.h>
 #include <windows.h>
-#include <api/hidsdi.h>
+#include <ddk/hidsdi.h>
 #include <setupapi.h>
 #else
 #include <libusb.h>

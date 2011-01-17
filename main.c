@@ -232,7 +232,11 @@ int main(int argc, char** argv)
 		if (device & DEV_SWITCH) {
 			OLS_EnterBootloader(ols);
 			OLS_Deinit(ols);
+#ifdef WIN32
+			Sleep(1);
+#else
 			sleep(1);
+#endif
 		}
 	}
 
