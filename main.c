@@ -14,6 +14,10 @@
 #include "ols.h"
 #include "data_file.h"
 
+#ifdef WIN32
+#define sleep(n) Sleep(1000 * n)
+#endif
+
 enum {
 	CMD_READ = 1,
 	CMD_WRITE = 2,
@@ -21,11 +25,6 @@ enum {
 	CMD_ERASE = 8,
 	CMD_RESET = 16,
 	CMD_SELFTEST = 32,
-};
-
-enum {
-	TYPE_BIN,
-	TYPE_HEX,
 };
 
 enum {
@@ -87,7 +86,6 @@ int main(int argc, char** argv)
 	struct file_ops_t *fo;
 	char *file_write = NULL;
 	char *file_read = NULL;
-	uint8_t file_type = TYPE_BIN;
 	uint8_t cmd = 0;
 	char *port = NULL;
 	uint8_t device = 0;
@@ -203,7 +201,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if (device & 3 == 0) {
+	if ((device & 3) == 0) {
 		fprintf(stderr, "Device not set\n");
 		error = 1;
 	}
@@ -228,15 +226,13 @@ int main(int argc, char** argv)
 			exit(-1);
 		}
 
-		bin_buf_size = ols->flash->pages * ols->flash->page_size;	
+		bin_buf_size = ols->flash->pages * ols->flash->page_size;
 		if (device & DEV_SWITCH) {
 			OLS_EnterBootloader(ols);
 			OLS_Deinit(ols);
-#ifdef WIN32
-			Sleep(1);
-#else
+
+			// wait for device to appear
 			sleep(1);
-#endif
 		}
 	}
 
@@ -274,9 +270,10 @@ int main(int argc, char** argv)
 			}
 		}
 	}
-	
+
 	if (cmd & CMD_READ) {
 		printf("Reading flash \n");
+		memset(bin_buf, 0xff, bin_buf_size);
 
 		if (device & DEV_APP) {
 			int i;
@@ -330,6 +327,8 @@ int main(int argc, char** argv)
 	if (cmd & CMD_WRITE) {
 		uint32_t max_addr;
 		printf("Reading file '%s'\n", file_write);
+		memset(bin_buf_tmp, 0xff, bin_buf_size);
+
 		max_addr = fo->ReadFile(file_write, bin_buf, bin_buf_size);
 		if (device & DEV_APP) {
 			int i;
@@ -366,10 +365,13 @@ int main(int argc, char** argv)
 		uint32_t max_addr;
 		// read the whole flash
 		printf("Checking flash ...\n");
+		memset(bin_buf_tmp, 0xff, bin_buf_size);
+		memset(bin_buf, 0xff, bin_buf_size);
+
 		max_addr = fo->ReadFile(file_write, bin_buf_tmp, bin_buf_size);
 		if (device & DEV_APP) {
 			int i;
-			int error = 0;
+
 			if (page_limit != 0) {
 				pages = page_limit;
 			} else {
@@ -425,7 +427,7 @@ int main(int argc, char** argv)
 	} else {
 		BOOT_Deinit(ob);
 	}
-	
+
 	// free allocated memory
 	free(bin_buf_tmp);
 	free(bin_buf);
