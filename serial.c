@@ -14,6 +14,8 @@
 
 #include "serial.h"
 
+#undef DEBUG
+
 int serial_setup(int fd, unsigned long speed)
 {
 #ifdef WIN32
@@ -31,7 +33,6 @@ int serial_setup(int fd, unsigned long speed)
 	if( !SetCommState(hCom, &dcb) ){
 		return -1;
 	}
-
 
 	timeouts.ReadIntervalTimeout = 100;
 	timeouts.ReadTotalTimeoutMultiplier = 10;
@@ -107,7 +108,6 @@ int serial_write(int fd, const char *buf, int size)
 	int res = 0;
 	unsigned long bwritten = 0;
 
-
 	res = WriteFile(hCom, buf, size, &bwritten, NULL);
 
 	if( res == FALSE ) {
@@ -119,11 +119,11 @@ int serial_write(int fd, const char *buf, int size)
 	ret = write(fd, buf, size);
 #endif
 
-	//fprintf(stderr, "size = %d ret = %d\n", size, ret);
-	//buspirate_print_buffer(buf, size);
-
+#ifdef DEBUG
 	if (ret != size)
-		fprintf(stderr, "Error sending data");
+		fprintf(stderr, "Error sending data (written %d should have written %d)\n", ret, size);
+#endif
+
 	return ret;
 }
 
@@ -164,12 +164,11 @@ int serial_read(int fd, char *buf, int size)
 		len += ret;
 	}
 #endif
-	//printf("should have read = %i actual size = %i \n", size, len);
-	//fprintf(stderr, "should have read = %d actual size = %d \n", size, len);
-	//buspirate_print_buffer(buf, len);
 
-	//if (len != size)
-		//fprintf(stderr, "Error sending data");
+#ifdef DEBUG
+	if (len != size)
+		fprintf(stderr, "Error receiving data (read %d should have read %d)\n", len, size);
+#endif
 
 	return len;
 }

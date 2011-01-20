@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -g -O0 -I/usr/include/libusb-1.0
+CFLAGS = -I/usr/include/libusb-1.0
 LDFLAGS = -lusb-1.0
 APP = ols-fwloader
-OBJS = main.o ols-boot.o data_file.o
+OBJS = main.o ols-boot.o data_file.o serial.o ols.o
 
 all: $(APP)
 

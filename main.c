@@ -15,7 +15,7 @@
 #include "data_file.h"
 
 #ifdef WIN32
-#define sleep(n) Sleep(1000 * n)
+#define sleep(n) Sleep((1000 * (n)))
 #endif
 
 enum {
@@ -33,18 +33,21 @@ enum {
 	DEV_SWITCH = 4,
 };
 
-void usage()
+static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, int verbose);
+
+static void usage()
 {
-	printf("ols-fwloader [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
+	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
 	printf("  -V      - veriy Flash against wfile\n");
 	printf("  -E      - erase flash\n");
 	printf("  -W      - erase and write flash with wfile\n");
 	printf("  -R      - read flash to rfile\n");
 	printf("  -T      - reset device at the end\n\n");
-	printf("  -t type - File type (BIN/HEX) (default: BIN)\n");
+	printf("  -t type - File type (BIN/HEX) (default: HEX)\n");
 	printf("  -w file - file to be read and written to flash\n");
 	printf("  -r file - file where the flash content should be written to\n");
+	printf("  -d      - be verbosse\n");
 
 	printf("BOOT only options: \n");
 	printf("  -p pid  - Set usb PID\n");
@@ -81,6 +84,7 @@ int main(int argc, char** argv)
 	int ret;
 	int i;
 	uint16_t pages;
+	int debug = 0;
 
 	// aguments
 	struct file_ops_t *fo;
@@ -94,11 +98,14 @@ int main(int argc, char** argv)
 	// getopt
 	int opt;
 
-	fo = GetFileOps("BIN");
+	fo = GetFileOps("HEX");
 
 	// parse args
-	while ((opt = getopt(argc, argv, "WRVETSnr:w:v:p:t:P:f:h")) != -1) {
+	while ((opt = getopt(argc, argv, "WRVETSnr:w:v:p:t:P:f:hd")) != -1) {
 		switch (opt) {
+			case 'd':
+				debug = 1;
+				break;
 			case 'h':
 				usage();
 				exit(1);
@@ -226,13 +233,17 @@ int main(int argc, char** argv)
 			exit(-1);
 		}
 
+		if (debug) {
+			ols->verbose = 1;
+		}
+
 		bin_buf_size = ols->flash->pages * ols->flash->page_size;
 		if (device & DEV_SWITCH) {
 			OLS_EnterBootloader(ols);
 			OLS_Deinit(ols);
 
 			// wait for device to appear
-			sleep(1);
+			sleep(2);
 		}
 	}
 
@@ -330,7 +341,12 @@ int main(int argc, char** argv)
 		memset(bin_buf_tmp, 0xff, bin_buf_size);
 
 		max_addr = fo->ReadFile(file_write, bin_buf, bin_buf_size);
-		if (device & DEV_APP) {
+		if (max_addr == 0) {
+			// error reading
+			fprintf(stderr, "Error reading file - skipping write\n");
+		}
+
+		if ((max_addr != 0) && (device & DEV_APP)) {
 			int i;
 			// determine number of pages (round up)
 			if (page_limit != 0) {
@@ -351,10 +367,12 @@ int main(int argc, char** argv)
 				}
 			}
 			printf("\n");
-		} else {
+		} else if ((max_addr != 0) && (device & DEV_BOOT)) {
+			int size;
 			// we write only application
-			printf("Writing flash ... (0x%04x - 0x%04x) \n", OLS_FLASH_ADDR, max_addr);
-			ret = BOOT_Write(ob, OLS_FLASH_ADDR, &bin_buf[OLS_FLASH_ADDR], max_addr - OLS_FLASH_ADDR);
+			size = ((max_addr - OLS_FLASH_ADDR) > OLS_FLASH_SIZE)? OLS_FLASH_SIZE : max_addr - OLS_FLASH_ADDR;
+			printf("Writing flash ... (0x%04x - 0x%04x) \n", OLS_FLASH_ADDR, size + OLS_FLASH_ADDR);
+			ret = BOOT_Write(ob, OLS_FLASH_ADDR, &bin_buf[OLS_FLASH_ADDR], size);
 			if (ret) {
 				exit(1);
 			}
@@ -364,13 +382,19 @@ int main(int argc, char** argv)
 	if (cmd & CMD_VERIFY) {
 		uint32_t max_addr;
 		// read the whole flash
-		printf("Checking flash ...\n");
 		memset(bin_buf_tmp, 0xff, bin_buf_size);
 		memset(bin_buf, 0xff, bin_buf_size);
 
 		max_addr = fo->ReadFile(file_write, bin_buf_tmp, bin_buf_size);
-		if (device & DEV_APP) {
+		if (max_addr == 0) {
+			// error reading
+			fprintf(stderr, "Error reading file - skipping verify\n");
+		}
+
+		if ((max_addr != 0) && (device & DEV_APP)) {
 			int i;
+
+			printf("Checking flash ...\n");
 
 			if (page_limit != 0) {
 				pages = page_limit;
@@ -393,18 +417,22 @@ int main(int argc, char** argv)
 			}
 			printf("\n");
 			// compare page by page
-			if (memcmp(bin_buf, bin_buf_tmp, max_addr)) {
+			if (memverify(bin_buf_tmp, bin_buf, max_addr, 0, debug)) {
 				printf("Verify error\n");
 			} else {
 				printf("Verify OK\n");
 			}
-		} else {
+		} else if ((max_addr != 0) && (device & DEV_BOOT)) {
+			int size;
 			ret = BOOT_Read(ob, 0x0000, bin_buf, OLS_FLASH_TOTSIZE);
 			if (ret) {
 				exit(1);
 			}
 			// compare only application
-			if (memcmp(&bin_buf[OLS_FLASH_ADDR], &bin_buf_tmp[OLS_FLASH_ADDR], max_addr - OLS_FLASH_ADDR) == 0) {
+			size = ((max_addr - OLS_FLASH_ADDR) > OLS_FLASH_SIZE)? OLS_FLASH_SIZE : max_addr - OLS_FLASH_ADDR;
+			printf("Checking flash ... (0x%04x - 0x%04x)\n", OLS_FLASH_ADDR, size + OLS_FLASH_ADDR);
+
+			if (memverify(&bin_buf_tmp[OLS_FLASH_ADDR], &bin_buf[OLS_FLASH_ADDR], size, OLS_FLASH_ADDR, debug) == 0) {
 				printf("Verified OK! :)\n");
 			} else {
 				printf("Verify failed :(\n");
@@ -433,5 +461,21 @@ int main(int argc, char** argv)
 	free(bin_buf);
 
 	return 0;
+}
+
+static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, int verbose)
+{
+	int ret = 0;
+	uint32_t i;
+
+	for (i = 0; i < len; i++) {
+		if (ref[i] != mem[i]) {
+			if (verbose)
+				printf("Diff @0x%04x (Is 0x%02x should be 0x%02x)\n", offset + i, mem[i], ref[i]);
+			ret = 1;
+		}
+	}
+
+	return ret;
 }
 
