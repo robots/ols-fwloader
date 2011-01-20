@@ -122,7 +122,7 @@ int OLS_RunSelftest(struct ols_t *ols)
 		}
 	}
 
-	if(status==0x00){
+	if(status == 0x00){
 		printf("Passed self-test :) \n");
 	}else{
 		printf("Failed :( - '%x'\n", status);
@@ -267,6 +267,7 @@ int OLS_GetFlashID(struct ols_t *ols) {
 
 	if(ols->flash == NULL) {
 		printf("Error - unknown flash type (%02x %02x %02x %02x)\n", ret[0], ret[1], ret[2], ret[3]);
+		printf("Is OLS in update mode ??\n");
 		return -1;
 	}
 
