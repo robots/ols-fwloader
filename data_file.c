@@ -138,20 +138,20 @@ uint32_t HEX_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size)
 				}
 			}
 		} else if (rec_type == 0x04) {
-			// base addr
+			// extended linear: base addr
 			base_addr = 0;
 			for (i = 0; i < byte_count; i++) {
 				sscanf(p, "%2x", &b);
 				p += 2;
 
-				tmp[tmp_len + i] = b;
-				base_addr = (base_addr << 8) | (b & 0xff);
+				tmp[tmp_len] = b;
 				tmp_len ++;
+				base_addr = (base_addr << 8) | (b & 0xff);
 			}
 
 			base_addr <<= 16;
 #ifdef DEBUG
-			fprintf(stderr, "new base addr = %08x\n", base_addr);
+			fprintf(stderr, "new (linear) base addr = %08x\n", base_addr);
 #endif
 		} else if (rec_type == 0x01) {
 			// end record

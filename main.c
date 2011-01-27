@@ -94,6 +94,7 @@ int main(int argc, char** argv)
 	char *port = NULL;
 	uint8_t device = 0;
 	uint16_t page_limit = 0;
+	uint32_t max_addr = 0;
 
 	// getopt
 	int opt;
@@ -317,6 +318,20 @@ int main(int argc, char** argv)
 		fo->WriteFile(file_read, bin_buf, bin_buf_size);
 	}
 
+	// JaWi: first read the entire data file before going to erase/write stuff.
+	// This way, we're fairly sure we can leave the device in a workable state
+	if (cmd & CMD_WRITE) {
+		printf("Reading file '%s'\n", file_write);
+		memset(bin_buf_tmp, 0xff, bin_buf_size);
+
+		max_addr = fo->ReadFile(file_write, bin_buf, bin_buf_size);
+		if (max_addr == 0) {
+			// error reading
+			fprintf(stderr, "Error reading file - skipping write\n");
+			exit(1);
+		}
+	}
+
 	// writing implies erase
 	if ((cmd & CMD_ERASE) || (cmd & CMD_WRITE)) {
 		printf("Erasing flash ...\n");
@@ -336,16 +351,6 @@ int main(int argc, char** argv)
 	}
 
 	if (cmd & CMD_WRITE) {
-		uint32_t max_addr;
-		printf("Reading file '%s'\n", file_write);
-		memset(bin_buf_tmp, 0xff, bin_buf_size);
-
-		max_addr = fo->ReadFile(file_write, bin_buf, bin_buf_size);
-		if (max_addr == 0) {
-			// error reading
-			fprintf(stderr, "Error reading file - skipping write\n");
-		}
-
 		if ((max_addr != 0) && (device & DEV_APP)) {
 			int i;
 			// determine number of pages (round up)
@@ -380,7 +385,6 @@ int main(int argc, char** argv)
 	}
 
 	if (cmd & CMD_VERIFY) {
-		uint32_t max_addr;
 		// read the whole flash
 		memset(bin_buf_tmp, 0xff, bin_buf_size);
 		memset(bin_buf, 0xff, bin_buf_size);
