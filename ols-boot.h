@@ -2,13 +2,20 @@
 #define BOOT_h_
 
 #include <stdint.h>
+#ifdef WIN32
+#include <wtypes.h>
+#include <windows.h>
+#include <ddk/hidsdi.h>
+#include <setupapi.h>
+#else
 #include <libusb.h>
+#endif
 
 #define OLS_VID         0x04d8
 #define OLS_PID         0xfc90
 
 #define OLS_TIMEOUT     1000
-#define OLS_PAGE_SIZE   2
+#define OLS_PAGE_SIZE   64
 #define OLS_READ_SIZE   (sizeof(rsp.read_flash.data))
 
 #define OLS_FLASH_SIZE  0x3400 // 16*0x400 - 3*0x400
@@ -16,10 +23,18 @@
 
 #define OLS_FLASH_TOTSIZE 0x4000
 
+enum {
+	OLS_WRITE_FLUSH = 1,
+	OLS_WRITE_2BYTE = 2,
+};
+
 struct ols_boot_t {
+#ifdef WIN32
+	HANDLE hDevice;
+#else
 	libusb_context *ctx;
 	libusb_device_handle *dev;
-
+#endif
 	int attach;
 
 	uint8_t cmd_id;

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <libusb.h>
 #include <string.h>
 
 #include "boot_if.h"
@@ -9,6 +8,17 @@
 
 struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 {
+#ifdef WIN32
+	GUID HidGuid;
+	HDEVINFO hDevInfo;
+	SP_DEVICE_INTERFACE_DATA DevInterfaceData;
+	unsigned long DevIndex = 0;
+	unsigned long DetailsSize;
+	PSP_INTERFACE_DEVICE_DETAIL_DATA pDetails;
+	HANDLE hHidDevice;
+	HIDD_ATTRIBUTES Attr;
+#endif
+
 	struct ols_boot_t *ob;
 	int ret;
 
@@ -19,6 +29,71 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 	}
 	memset(ob, 0, sizeof(struct ols_boot_t));
 
+#ifdef WIN32
+	HidD_GetHidGuid( &HidGuid);
+	hDevInfo = SetupDiGetClassDevs(&HidGuid, NULL, NULL, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
+	if (hDevInfo == INVALID_HANDLE_VALUE)
+	{
+		fprintf(stderr, "INVALID_HANDLE_VALUE\n");
+		return NULL;
+	}
+	DevInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
+
+	// iterate thgough all HID devices
+	// this part is inspirated by Diolan's fw_update
+	while(1)
+	{
+		int bad = 0;
+
+		if (!SetupDiEnumDeviceInterfaces(hDevInfo, NULL, &HidGuid, DevIndex, &DevInterfaceData)) {
+			fprintf(stderr, "Device does not exist\n");
+			return NULL;
+		}
+
+		SetupDiGetDeviceInterfaceDetail(hDevInfo, &DevInterfaceData, NULL, 0, &DetailsSize, NULL);
+		pDetails = malloc(DetailsSize);
+		if (pDetails == NULL)
+		{
+			SetupDiDestroyDeviceInfoList(hDevInfo);
+			fprintf(stderr, "Not enough memory \n");
+			return NULL;
+		}
+
+		pDetails->cbSize = sizeof(SP_INTERFACE_DEVICE_DETAIL_DATA);
+		if (!SetupDiGetDeviceInterfaceDetail(hDevInfo, &DevInterfaceData, pDetails, DetailsSize, NULL, NULL))
+		{
+			free(pDetails);
+			SetupDiDestroyDeviceInfoList(hDevInfo);
+			fprintf(stderr, "SetupDiGetDeviceInterfaceDetail failed\n");
+			return NULL;
+		}
+
+		hHidDevice = CreateFile(pDetails->DevicePath,	GENERIC_READ | GENERIC_WRITE,	FILE_SHARE_READ | FILE_SHARE_WRITE,
+			NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+
+		if (hHidDevice == INVALID_HANDLE_VALUE) {
+			bad = 1;
+		}
+
+		if ((bad == 0) && (!HidD_GetAttributes (hHidDevice, &Attr))) {
+			bad = 2;
+		}
+
+		if ((bad == 0) && (Attr.VendorID == vid) && (Attr.ProductID == pid)) {
+			ob->hDevice = hHidDevice;
+			free(pDetails);
+			break;
+		}
+
+		if (bad > 1) {
+			CloseHandle(hHidDevice);
+		}
+
+		free(pDetails);
+		DevIndex++;
+	}
+	SetupDiDestroyDeviceInfoList(hDevInfo);
+#else
 	ret = libusb_init(&ob->ctx);
 	if (ret != 0) {
 		fprintf(stderr, "libusb_init proobem\n");
@@ -51,17 +126,44 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 	if (ret != 0) {
 		fprintf(stderr, "Unable to set alternative interface \n");
 	}
+#endif
 
 	return ob;
 }
 
 static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 {
+#ifdef WIN32
+	OVERLAPPED read_over;
+	unsigned long readed;
+	unsigned char read_buf[sizeof(boot_rsp)+1];
+	unsigned long res;
+
+	memset(&read_over, 0, sizeof(OVERLAPPED));
+
+	read_over.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+	if ((!ReadFile(ob->hDevice, read_buf, sizeof(boot_rsp)+1, &readed, &read_over))	&& (GetLastError() != ERROR_IO_PENDING)) {
+		fprintf(stderr, "LastError = %d\n", GetLastError());
+		return 3;
+	}
+	if (WAIT_TIMEOUT == (res = WaitForSingleObject(read_over.hEvent, 5000)))
+	{
+		fprintf(stderr, "Write timeout\n");
+		return 2;
+	}
+	if ((!GetOverlappedResult(ob->hDevice, &read_over, &readed, FALSE)) || (readed != sizeof(boot_rsp) + 1)) {
+		fprintf(stderr, "LastError = %d, readed = %d\n", GetLastError(), readed);
+		return 1;
+	}
+	memcpy(rsp, read_buf + 1, sizeof(boot_rsp));
+	CloseHandle(read_over.hEvent);
+	return 0;
+#else
 	int ret;
 	int len;
 
 	memset (rsp, 0, sizeof(boot_rsp));
-
 	ret = libusb_interrupt_transfer(ob->dev, 0x81, (uint8_t *)rsp, sizeof(boot_rsp), &len, OLS_TIMEOUT);
 	if ((ret == 0) && (len == sizeof(boot_rsp))) {
 		return 0;
@@ -70,38 +172,63 @@ static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 		return 1;
 	} else if (ret == LIBUSB_ERROR_TIMEOUT) {
 		fprintf(stderr, "Com timeout\n");
-		return 1;
+		return 2;
 	} else if (ret == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "Error sending, not ols ?\n");
-		return 2;
+		return 3;
 	} else if (ret == LIBUSB_ERROR_NO_DEVICE) {
 		fprintf(stderr, "Device disconnected \n");
-		return 3;
+		return 4;
 	}
-
-	fprintf(stderr, "Other error \n");
-	return 4;
+	fprintf(stderr, "Other error - recv \n");
+	return 5;
+#endif
 }
 
 static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
 {
+#ifdef WIN32
+	unsigned char write_buf[sizeof(boot_cmd)+1];
+	unsigned long written;
+	OVERLAPPED write_over;
+	BOOL write_res;
+
+	memset(&write_over, 0, sizeof(OVERLAPPED));
+	write_over.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+	write_buf[0] = 0;
+	memcpy(write_buf + 1, cmd, sizeof(boot_cmd));
+
+	write_res = WriteFile(ob->hDevice, write_buf, sizeof(boot_cmd) + 1, &written, &write_over);
+	if ((!write_res) && (GetLastError() != ERROR_IO_PENDING)) {
+		fprintf(stderr, "LastError = %d\n", GetLastError());
+		return 2;
+	}
+	if (WaitForSingleObject(write_over.hEvent, OLS_TIMEOUT) == WAIT_TIMEOUT) {
+		fprintf(stderr, "Write timeout");
+		return 1;
+	}
+	CloseHandle(write_over.hEvent);
+	return 0;
+#else
 	int ret;
-	
+
 	ret = libusb_control_transfer(ob->dev, 0x21, 0x09, 0x0000, 0x0000, (uint8_t *)cmd, sizeof(boot_cmd), OLS_TIMEOUT);
 	if (ret == sizeof(boot_cmd)) {
 		return 0;
 	} else if (ret == LIBUSB_ERROR_TIMEOUT) {
 		fprintf(stderr, "Com timeout\n");
-		return 1;
+		return 2;
 	} else if (ret == LIBUSB_ERROR_PIPE) {
 		fprintf(stderr, "Error sending, not ols ?\n");
-		return 2;
+		return 3;
 	} else if (ret == LIBUSB_ERROR_NO_DEVICE) {
 		fprintf(stderr, "Device disconnected \n");
-		return 3;
+		return 4;
 	}
 	fprintf(stderr, "Other error \n");
-	return 4;
+	return 5;
+#endif
 }
 
 static uint8_t BOOT_SendRecv(struct ols_boot_t *ob, boot_cmd *cmd, boot_rsp *rsp)
@@ -137,7 +264,7 @@ uint8_t BOOT_Version(struct ols_boot_t *ob)
 	cmd.header.cmd = BOOT_GET_FW_VER;
 
 	ret = BOOT_SendRecv(ob, &cmd, &rsp);
-	
+
 	if (ret) {
 		return 1;
 	}
@@ -201,6 +328,8 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		len = (len % 2) ? len + 1: len; // round odd
 
 		memcpy(cmd.write_flash.data, buf, len);
+		// command bootloader to only write 2 bytes
+		cmd.write_flash.flush = OLS_WRITE_2BYTE | OLS_WRITE_FLUSH;
 #elif OLS_PAGE_SIZE == 64
 		flush ^= 1; // toggle flush
 
@@ -212,7 +341,9 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		// in this mode we always write 32 bytes
 		// rest is padded with 0xff
 		len = OLS_PAGE_SIZE/2;
-#else 
+		// command bootloader to write 64bytes
+		cmd.write_flash.flush = flush & OLS_WRITE_FLUSH;
+#else
 #error "Unsupported page size"
 #endif
 
@@ -221,8 +352,7 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 
 		cmd.write_flash.addr_hi = (address >> 8) & 0xff;
 		cmd.write_flash.addr_lo = address & 0xff;
-		cmd.write_flash.size8 = len; 
-		cmd.write_flash.flush = (flush==0)?0:0xff;
+		cmd.write_flash.size8 = len;
 
 		if (address < OLS_FLASH_ADDR) {
 			fprintf(stderr, "Protecting bootloader - skip @0x%04x\n", address);
@@ -285,6 +415,10 @@ uint8_t BOOT_Reset(struct ols_boot_t *ob)
 
 void BOOT_Deinit(struct ols_boot_t *ob)
 {
+#ifdef WIN32
+	CloseHandle(ob->hDevice);
+	ob->hDevice = INVALID_HANDLE_VALUE;
+#else
 	libusb_release_interface(ob->dev, 0);
 
 	if (ob->attach) {
@@ -296,5 +430,8 @@ void BOOT_Deinit(struct ols_boot_t *ob)
 	libusb_close(ob->dev);
 	libusb_exit(ob->ctx);
 
+	ob->dev = NULL;
+	ob->ctx = NULL;
+#endif
 }
 
