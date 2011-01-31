@@ -61,9 +61,11 @@ static void usage()
 
 	printf("\n\n");
 	printf("Write PIC firmware with verification, enter bootloader first:\n");
-	printf(" ols-fwloader -f BOOT -n -P /dev/ttyACM0 -V -W -w aaas.bin  \n");
-	printf("Write FPGA bitstream:\n");
-	printf(" ols-fwloader -f APP -W -w bitstream.hex\n");
+	printf(" ols-fwloader -f BOOT -n -P /dev/ttyACM0 -V -W -w firmware.hex\n");
+	printf("Write FPGA bitstream (HEX):\n");
+	printf(" ols-fwloader -f APP -W -w bitstream.mcs\n");
+	printf("Write FPGA bitstream (BIN):\n");
+	printf(" ols-fwloader -f APP -W -w bitstream.bit -t BIN\n");
 	printf("\n");
 
 }
