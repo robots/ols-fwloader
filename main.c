@@ -240,11 +240,16 @@ int main(int argc, char** argv)
 
 		bin_buf_size = ols->flash->pages * ols->flash->page_size;
 		if (device & DEV_SWITCH) {
-			OLS_EnterBootloader(ols);
-			OLS_Deinit(ols);
+			if (device & DEV_BOOT) {
+				OLS_EnterBootloader(ols);
+				OLS_Deinit(ols);
 
-			// wait for device to appear
-			sleep(2);
+				// wait for device to appear
+				sleep(2);
+			} else {
+				fprintf(stderr, "Not switching to bootloader.\n");
+				device &= ~DEV_SWITCH;
+			}
 		}
 	}
 
