@@ -1,3 +1,4 @@
 *.bin
+*.hex
 *.o
-ols-fwloader
+ols-fwloader*
