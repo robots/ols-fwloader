@@ -103,7 +103,7 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 	libusb_set_debug(ob->ctx, 4);
 	ob->dev = libusb_open_device_with_vid_pid(ob->ctx, vid, pid);
 	if (ob->dev == NULL) {
-		fprintf(stderr, "Device not found\n");
+		fprintf(stderr, "USB Device (%04x:%04x) not found, is OLS in bootloader mode ?\n", vid, pid);
 		free(ob);
 		return NULL;
 	}
@@ -120,7 +120,7 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 
 	ret = libusb_claim_interface(ob->dev, 0);
 	if (ret != 0) {
-		fprintf(stderr, "Cannot claim device\n");
+		fprintf(stderr, "Cannot claim USB device\n");
 	}
 
 	ret = libusb_set_interface_alt_setting(ob->dev, 0, 0);

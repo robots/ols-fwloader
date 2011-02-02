@@ -19,6 +19,7 @@
 #define sleep(n) Sleep((1000 * (n)))
 #endif
 
+#define DEFAULT_TYPE "HEX"
 enum {
 	CMD_READ = 1,
 	CMD_WRITE = 2,
@@ -38,7 +39,7 @@ static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, 
 
 static void usage()
 {
-	printf("This is " PACKAGE_STRING);
+	printf("This is " PACKAGE_STRING "\n");
 	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
 	printf("  -V      - veriy Flash against wfile\n");
@@ -46,14 +47,14 @@ static void usage()
 	printf("  -W      - erase and write flash with wfile\n");
 	printf("  -R      - read flash to rfile\n");
 	printf("  -T      - reset device at the end\n\n");
-	printf("  -t type - File type (BIN/HEX) (default: HEX)\n");
+	printf("  -t type - File type (BIN/HEX) (default: " DEFAULT_TYPE ")\n");
 	printf("  -w file - file to be read and written to flash\n");
 	printf("  -r file - file where the flash content should be written to\n");
 	printf("  -d      - be verbosse\n");
 
 	printf("BOOT only options: \n");
-	printf("  -p pid  - Set usb PID\n");
-	printf("  -v vid  - Set usb VID\n");
+	printf("  -p pid  - Set usb PID (default: 0x%04x)\n", OLS_PID);
+	printf("  -v vid  - Set usb VID (default: 0x%04x)\n", OLS_VID);
 	printf("  -n      - enter bootloader first\n");
 
 	printf("APP only options: \n");
@@ -65,9 +66,9 @@ static void usage()
 	printf("Write PIC firmware with verification, enter bootloader first:\n");
 	printf(" ols-fwloader -f BOOT -n -P /dev/ttyACM0 -V -W -w firmware.hex\n");
 	printf("Write FPGA bitstream (HEX):\n");
-	printf(" ols-fwloader -f APP -W -w bitstream.mcs\n");
+	printf(" ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.mcs\n");
 	printf("Write FPGA bitstream (BIN):\n");
-	printf(" ols-fwloader -f APP -W -w bitstream.bit -t BIN\n");
+	printf(" ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.bit -t BIN\n");
 	printf("\n");
 
 }
@@ -208,20 +209,22 @@ int main(int argc, char** argv)
 
 	if ((device & DEV_APP) || device & DEV_SWITCH) {
 		if (port == NULL) {
-			fprintf(stderr, "Missing port \n");
+			fprintf(stderr, "Missing serial port \n");
 			error = 1;
 		}
 	}
 
 	if ((device & 3) == 0) {
-		fprintf(stderr, "Device not set\n");
+		fprintf(stderr, "No device specified\n");
 		error = 1;
 	}
 
+/*
 	if (cmd == 0) {
 		fprintf(stderr, "Missing command\n");
 		error = 1;
 	}
+*/
 
 	if ((error)) {
 		usage();
