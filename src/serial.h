@@ -8,9 +8,10 @@
 #ifndef MYSERIAL_H_
 #define MYSERIAL_H_
 
+#include <config.h>
 #include <stdint.h>
 
-#ifdef WIN32
+#if IS_WIN32
 #include <windows.h>
 #include <time.h>
 
@@ -28,7 +29,7 @@ typedef long speed_t;
 
 #endif
 
-#ifdef MACOSX
+#if IS_DARWIN
 #include <IOKit/serial/ioss.h>
 #include <sys/ioctl.h>
 

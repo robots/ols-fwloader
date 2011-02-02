@@ -5,6 +5,7 @@
  *
  */
 
+#include <config.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +15,7 @@
 #include "ols.h"
 #include "data_file.h"
 
-#ifdef WIN32
+#if IS_WIN32
 #define sleep(n) Sleep((1000 * (n)))
 #endif
 
@@ -37,6 +38,7 @@ static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, 
 
 static void usage()
 {
+	printf("This is " PACKAGE_STRING);
 	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
 	printf("  -V      - veriy Flash against wfile\n");

@@ -1,3 +1,4 @@
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -8,7 +9,7 @@
 
 struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 {
-#ifdef WIN32
+#if IS_WIN32
 	GUID HidGuid;
 	HDEVINFO hDevInfo;
 	SP_DEVICE_INTERFACE_DATA DevInterfaceData;
@@ -29,7 +30,7 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 	}
 	memset(ob, 0, sizeof(struct ols_boot_t));
 
-#ifdef WIN32
+#if IS_WIN32
 	HidD_GetHidGuid( &HidGuid);
 	hDevInfo = SetupDiGetClassDevs(&HidGuid, NULL, NULL, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
 	if (hDevInfo == INVALID_HANDLE_VALUE)
@@ -133,7 +134,7 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 
 static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 {
-#ifdef WIN32
+#if IS_WIN32
 	OVERLAPPED read_over;
 	unsigned long readed;
 	unsigned char read_buf[sizeof(boot_rsp)+1];
@@ -187,7 +188,7 @@ static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 
 static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
 {
-#ifdef WIN32
+#if IS_WIN32
 	unsigned char write_buf[sizeof(boot_cmd)+1];
 	unsigned long written;
 	OVERLAPPED write_over;
@@ -415,7 +416,7 @@ uint8_t BOOT_Reset(struct ols_boot_t *ob)
 
 void BOOT_Deinit(struct ols_boot_t *ob)
 {
-#ifdef WIN32
+#if IS_WIN32
 	CloseHandle(ob->hDevice);
 	ob->hDevice = INVALID_HANDLE_VALUE;
 #else

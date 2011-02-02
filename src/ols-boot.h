@@ -1,8 +1,9 @@
 #ifndef BOOT_h_
 #define BOOT_h_
 
+#include <config.h>
 #include <stdint.h>
-#ifdef WIN32
+#if IS_WIN32
 #include <wtypes.h>
 #include <windows.h>
 #include <ddk/hidsdi.h>
@@ -29,7 +30,7 @@ enum {
 };
 
 struct ols_boot_t {
-#ifdef WIN32
+#if IS_WIN32
 	HANDLE hDevice;
 #else
 	libusb_context *ctx;

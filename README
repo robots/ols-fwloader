@@ -7,5 +7,24 @@ I have therefore created this tool. Simple, yet effective.
 
 License is yet to be added. For now assume GPLv3 license.
 
+- Requirements
+  linux:
+    cdc_acm support in kernel
+    libusb 1.0
 
-Furure plan includes integration with ols-loader.
+  win:
+    cdc acm driver
+
+
+- To make:
+
+  ./configure
+  make
+  make install
+
+  I suggest to use --prefix parameter.
+
+
+Git repository can be found here:
+
+  http://github.com/robots/ols-fwloader

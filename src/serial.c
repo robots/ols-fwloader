@@ -6,6 +6,8 @@
  *
  */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -14,11 +16,9 @@
 
 #include "serial.h"
 
-#undef DEBUG
-
 int serial_setup(int fd, unsigned long speed)
 {
-#ifdef WIN32
+#if IS_WIN32
 	COMMTIMEOUTS timeouts;
 	DCB dcb = {0};
 	HANDLE hCom = (HANDLE)fd;
@@ -86,7 +86,7 @@ int serial_setup(int fd, unsigned long speed)
 	t_opt.c_cc[VMIN] = 0;
 	t_opt.c_cc[VTIME] = 10;
 
-#ifdef MACOSX
+#if IS_DARWIN
 	if( tcsetattr(fd, TCSANOW, &t_opt) < 0 ) {
 		return -1;
 	}
@@ -96,14 +96,14 @@ int serial_setup(int fd, unsigned long speed)
 	tcflush(fd, TCIOFLUSH);
 
 	return tcsetattr(fd, TCSANOW, &t_opt);
-#endif //#ifdef MACOSX
+#endif
 #endif
 }
 
 int serial_write(int fd, const char *buf, int size)
 {
 	int ret = 0;
-#ifdef WIN32
+#if IS_WIN32
 	HANDLE hCom = (HANDLE)fd;
 	int res = 0;
 	unsigned long bwritten = 0;
@@ -119,7 +119,7 @@ int serial_write(int fd, const char *buf, int size)
 	ret = write(fd, buf, size);
 #endif
 
-#ifdef DEBUG
+#if DEBUG
 	if (ret != size)
 		fprintf(stderr, "Error sending data (written %d should have written %d)\n", ret, size);
 #endif
@@ -132,7 +132,7 @@ int serial_read(int fd, char *buf, int size)
 	int len = 0;
 	int ret = 0;
 	int timeout = 0;
-#ifdef WIN32
+#if IS_WIN32
 	HANDLE hCom = (HANDLE)fd;
 	unsigned long bread = 0;
 
@@ -165,7 +165,7 @@ int serial_read(int fd, char *buf, int size)
 	}
 #endif
 
-#ifdef DEBUG
+#if DEBUG
 	if (len != size)
 		fprintf(stderr, "Error receiving data (read %d should have read %d)\n", len, size);
 #endif
@@ -176,7 +176,7 @@ int serial_read(int fd, char *buf, int size)
 int serial_open(const char *port)
 {
 	int fd;
-#ifdef WIN32
+#if IS_WIN32
 	static char full_path[32] = {0};
 
 	HANDLE hCom = NULL;
@@ -205,7 +205,7 @@ int serial_open(const char *port)
 
 int serial_close(int fd)
 {
-#ifdef WIN32
+#if IS_WIN32
 	HANDLE hCom = (HANDLE)fd;
 
 	CloseHandle(hCom);

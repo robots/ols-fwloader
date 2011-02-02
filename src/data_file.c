@@ -11,8 +11,6 @@
 
 #include "data_file.h"
 
-#undef DEBUG
-
 #define FILE_OPS_CNT (sizeof(file_ops)/sizeof(struct file_ops_t))
 const struct file_ops_t file_ops[] = {
 	{
