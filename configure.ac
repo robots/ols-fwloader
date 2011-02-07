@@ -55,11 +55,14 @@ if test $is_win32 = no; then
   if test x"$PKG_CONFIG" = x""; then
     AC_MSG_ERROR([pkg-config not found.])
   fi
-  
+
   PKG_CONFIG_REQUIRES=""
-  OLS_CHECK_LIBUSB
+	PKG_CHECK_MODULES([libusb], [libusb-1.0 >= 1.0.5],
+		[CFLAGS="$CFLAGS $libusb_CFLAGS";
+		LIBS="$LIBS $libusb_LIBS"])
+	AC_CHECK_LIB(usb-1.0, libusb_init)
   AC_SUBST(PKG_CONFIG_REQUIRES)
-else 
+else
 	win32_LIBS="-lhid -lsetupapi"
 fi
 AC_SUBST(win32_LIBS)
