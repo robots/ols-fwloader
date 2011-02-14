@@ -1,8 +1,20 @@
-/*
- * OLS flash loader
+/* 
+ * Part of ols-fwloader - Main program
  *
- * 2011 - Michal Demin
+ * Copyright (C) 2011 Michal Demin <michal.demin@gmail.com>
  *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <config.h>
@@ -39,7 +51,11 @@ static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, 
 
 static void usage()
 {
-	printf("This is " PACKAGE_STRING "\n");
+	printf(PACKAGE_STRING " Copyright (C) 2011 Michal Demin\n");
+  printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
+	printf("This is free software, and you are welcome to redistribute it\n");
+	printf("under certain conditions. See COPYING\n\n");
+
 	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
 	printf("  -V      - veriy Flash against wfile\n");

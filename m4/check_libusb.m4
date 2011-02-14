@@ -16,7 +16,7 @@ AC_DEFUN([OLS_CHECK_LIBUSB],
   if test "x$LIBUSB_DIR" != "x"; then
     AC_MSG_NOTICE(["use libusb from $LIBUSB_DIR"])
     libusb_CFLAGS="-I$LIBUSB_DIR/include"
-    libusb_LIBS="-L$LIBUSB_DIR/lib/gcc -lusb"
+    libusb_LIBS="-L$LIBUSB_DIR/lib/gcc -lusb-1.0"
     HAVE_LIBUSB=1
   fi
 

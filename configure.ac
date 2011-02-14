@@ -1,4 +1,4 @@
-AC_INIT([ols-fwloader],[0.1],[michal.demin@gmail.com])
+AC_INIT([ols-fwloader],[0.2],[michal.demin@gmail.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 AC_CONFIG_MACRO_DIR([m4])

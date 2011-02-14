@@ -1,30 +1,43 @@
-This is commandline utility for Diolan bootloader.
 
-OLS - Logic analyzer (http://dangerousprototypes.com/docs/Open_Bench_Logic_Sniffer)
+  OLS-fwloader
 
-OLS uses modified bootloader. The original fw_update tool does make life harder.
-I have therefore created this tool. Simple, yet effective.
+This is commandline update utility for OLS - OpenBench Logic Sniffer. Logic
+Analyzer created by Dangerous Prototypes (http://dangerousprototypes.com).
 
-License is yet to be added. For now assume GPLv3 license.
+This tool uses parts from Diolan's fw_update tool to talk to the bootloader.
+Serial port routines first written by Piotr Pawluczuk for pirate-loader,
+adapted and improved to better fit this project.
 
-- Requirements
-  linux:
+So far supported input file types are:
+- Binary
+- Intel Hex
+- Xilinx bit file
+
+All input files are autodetected.
+
+Requirements:
+- linux:
     cdc_acm support in kernel
     libusb 1.0
 
-  win:
+- win:
     cdc acm driver
 
+Building:
 
-- To make:
+  for git repository first run:
+  $ autoreconf --install
 
-  ./configure
-  make
-  make install
+  $ ./configure
+  $ make
+  $ make install
 
-  I suggest to use --prefix parameter.
+  I suggest to use --prefix parameter for configure.
 
 
 Git repository can be found here:
 
   http://github.com/robots/ols-fwloader
+
+This tool is created and maintaned by Michal Demin <michal.demin@gmail.com>
+Feel free to send suggestions, improvements, patches.
