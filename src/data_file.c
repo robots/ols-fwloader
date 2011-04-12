@@ -23,17 +23,34 @@
 
 #include "data_file.h"
 
+static uint32_t HEX_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size);
+static int HEX_WriteFile(const char *file, uint8_t *in_buf, uint32_t in_buf_size);
+static int HEX_CheckType(const char *);
+static uint32_t BIN_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size);
+static int BIN_WriteFile(const char *file, uint8_t *in_buf, uint32_t in_buf_size);
+static int BIN_CheckType(const char *);
+
+// TODO: implement BIT file reading/ writing?
+
 #define FILE_OPS_CNT (sizeof(file_ops)/sizeof(struct file_ops_t))
 const struct file_ops_t file_ops[] = {
-	{
-		.name = "BIN",
-		.ReadFile = BIN_ReadFile,
-		.WriteFile = BIN_WriteFile,
-	},
 	{
 		.name = "HEX",
 		.ReadFile = HEX_ReadFile,
 		.WriteFile = HEX_WriteFile,
+		.CheckType = HEX_CheckType,
+	},
+/*	{
+		.name = "BIT",
+		.ReadFile = BIT_ReadFile,
+		.WriteFile = BIT_WriteFile,
+		.CheckType = BIT_CheckType,
+	},*/
+	{
+		.name = "BIN",
+		.ReadFile = BIN_ReadFile,
+		.WriteFile = BIN_WriteFile,
+		.CheckType = BIN_CheckType,
 	}
 };
 
@@ -53,7 +70,8 @@ struct file_ops_t *GetFileOps(char *name)
 /*
  * returns checksum of input buffer
  */
-uint8_t Data_Checksum(uint8_t *buf, uint16_t size) {
+uint8_t Data_Checksum(uint8_t *buf, uint16_t size)
+{
 	uint16_t i;
 	uint8_t sum = 0;
 
@@ -70,7 +88,8 @@ uint8_t Data_Checksum(uint8_t *buf, uint16_t size) {
  * size - size of buffer
  */
 #define MAX_LINE_SIZE 256
-uint32_t HEX_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size) {
+static uint32_t HEX_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size)
+{
 	char raw_line[MAX_LINE_SIZE];
 	int line = 0;
 	uint32_t base_addr;
@@ -191,7 +210,8 @@ uint32_t HEX_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size)
  * buf - buffer where data is stored
  * size - size of buffer
  */
-static void HEX_WriteRec(FILE *fp, uint8_t rec_id, uint8_t byte_count, uint16_t addr, uint8_t *data) {
+static void HEX_WriteRec(FILE *fp, uint8_t rec_id, uint8_t byte_count, uint16_t addr, uint8_t *data)
+{
 	int res;
 	uint8_t bin_line[128];
 	char raw_line[256];
@@ -229,7 +249,8 @@ static void HEX_WriteRec(FILE *fp, uint8_t rec_id, uint8_t byte_count, uint16_t 
  * buf - buffer which contains the data
  * size - size of buffer
  */
-int HEX_WriteFile(const char *file, uint8_t *in_buf, uint32_t in_buf_size) {
+static int HEX_WriteFile(const char *file, uint8_t *in_buf, uint32_t in_buf_size)
+{
 	uint32_t written = 0;
 	uint16_t base = 0x0000;
 	uint32_t addr = 0x0000;
@@ -279,13 +300,19 @@ int HEX_WriteFile(const char *file, uint8_t *in_buf, uint32_t in_buf_size) {
 	return 0;
 }
 
+static int HEX_CheckType(const char *)
+{
+	return 0 ;; //TODO: finish
+}
+
 /*
  * reads bin file
  * file - name of hexfile
  * buf - buffer where the data should be written to
  * size - size of buffer, returns actual size read
  */
-uint32_t BIN_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size) {
+static uint32_t BIN_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size)
+{
 	int res;
 	long fsize;
 	FILE *fp;
@@ -319,7 +346,8 @@ uint32_t BIN_ReadFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size)
  * buf - buffer which contains the data
  * size - size of buffer
  */
-int BIN_WriteFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size) {
+static int BIN_WriteFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size)
+{
 	FILE *fp;
 	int res;
 
@@ -334,4 +362,10 @@ int BIN_WriteFile(const char *file, uint8_t *out_buf, uint32_t out_buf_size) {
 	fclose(fp);
 
 	return 0;
+}
+
+static int BIN_CheckType(const char *)
+{
+	/* always binary */
+	return 1;
 }
