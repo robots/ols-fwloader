@@ -300,7 +300,7 @@ static int HEX_WriteFile(const char *file, uint8_t *in_buf, uint32_t in_buf_size
 	return 0;
 }
 
-static int HEX_CheckType(const char *)
+static int HEX_CheckType(const char *dummy)
 {
 	return 0 ;; //TODO: finish
 }
@@ -364,7 +364,7 @@ static int BIN_WriteFile(const char *file, uint8_t *out_buf, uint32_t out_buf_si
 	return 0;
 }
 
-static int BIN_CheckType(const char *)
+static int BIN_CheckType(const char *dummy)
 {
 	/* always binary */
 	return 1;
