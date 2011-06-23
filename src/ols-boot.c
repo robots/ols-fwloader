@@ -167,17 +167,21 @@ static uint8_t BOOT_Recv(struct ols_boot_t *ob, boot_rsp *rsp)
 		fprintf(stderr, "LastError = %d\n", GetLastError());
 		return 3;
 	}
+
 	if (WAIT_TIMEOUT == (res = WaitForSingleObject(read_over.hEvent, 5000)))
 	{
 		fprintf(stderr, "Write timeout\n");
 		return 2;
 	}
+
 	if ((!GetOverlappedResult(ob->hDevice, &read_over, &readed, FALSE)) || (readed != sizeof(boot_rsp) + 1)) {
 		fprintf(stderr, "LastError = %d, readed = %d\n", GetLastError(), readed);
 		return 1;
 	}
+
 	memcpy(rsp, read_buf + 1, sizeof(boot_rsp));
 	CloseHandle(read_over.hEvent);
+
 	return 0;
 #else
 	int ret;
@@ -224,11 +228,14 @@ static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
 		fprintf(stderr, "LastError = %d\n", GetLastError());
 		return 2;
 	}
+
 	if (WaitForSingleObject(write_over.hEvent, OLS_TIMEOUT) == WAIT_TIMEOUT) {
 		fprintf(stderr, "Write timeout");
 		return 1;
 	}
+
 	CloseHandle(write_over.hEvent);
+
 	return 0;
 #else
 	int ret;
@@ -246,7 +253,9 @@ static uint8_t BOOT_Send(struct ols_boot_t *ob, boot_cmd *cmd)
 		fprintf(stderr, "Device disconnected \n");
 		return 4;
 	}
+
 	fprintf(stderr, "Other error \n");
+
 	return 5;
 #endif
 }
@@ -348,6 +357,7 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		len = (len % 2) ? len + 1: len; // round odd
 
 		memcpy(cmd.write_flash.data, buf, len);
+
 		// command bootloader to only write 2 bytes
 		cmd.write_flash.flush = OLS_WRITE_2BYTE | OLS_WRITE_FLUSH;
 #elif OLS_PAGE_SIZE == 64
@@ -361,6 +371,7 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 		// in this mode we always write 32 bytes
 		// rest is padded with 0xff
 		len = OLS_PAGE_SIZE/2;
+
 		// command bootloader to write 64bytes
 		cmd.write_flash.flush = flush & OLS_WRITE_FLUSH;
 #else
@@ -397,7 +408,6 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 
 uint8_t BOOT_Erase(struct ols_boot_t *ob)
 {
-	// todo loop
 	boot_cmd cmd;
 	boot_rsp rsp;
 	uint16_t address = 0;
