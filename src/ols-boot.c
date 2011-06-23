@@ -387,7 +387,7 @@ uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t 
 
 		if (address < OLS_FLASH_ADDR) {
 			fprintf(stderr, "Protecting bootloader - skip @0x%04x\n", address);
-		} if (address + len >= OLS_FLASH_ADDR + OLS_FLASH_SIZE) {
+		} if (address + len > OLS_FLASH_ADDR + OLS_FLASH_SIZE) {
 			fprintf(stderr, "Protecting bootloader - skip @0x%04x\n", address);
 			// we end
 			break;
