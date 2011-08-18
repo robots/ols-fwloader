@@ -40,10 +40,22 @@ const struct ols_flash_t OLS_Flash[] = {
 		"ATMEL AT45DB021D"
 	},
 	{
-		"\xef\x30\x13\x00",
+		"\xef\x30\x12\x00",
 		256, // size of page
 		1024, // number of pages
+		"WINBOND W25X20"
+	},
+	{
+		"\xef\x30\x13\x00",
+		256, // size of page
+		2048, // number of pages
 		"WINBOND W25X40"
+	},
+	{
+		"\xef\x40\x14\x00",
+		256, // size of page
+		4096, // number of pages
+		"WINBOND W25Q80"
 	},
 };
 
