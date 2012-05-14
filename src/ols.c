@@ -52,6 +52,12 @@ const struct ols_flash_t OLS_Flash[] = {
 		"WINBOND W25X40"
 	},
 	{
+		"\xef\x30\x14\x00",
+		256, // size of page
+		4096, // number of pages
+		"WINBOND W25X80"
+	},
+	{
 		"\xef\x40\x14\x00",
 		256, // size of page
 		4096, // number of pages
