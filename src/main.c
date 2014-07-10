@@ -58,7 +58,7 @@ static void usage()
 
 	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
-	printf("  -V      - veriy Flash against wfile\n");
+	printf("  -V      - verify Flash against wfile\n");
 	printf("  -E      - erase flash\n");
 	printf("  -W      - erase and write flash with wfile\n");
 	printf("  -R      - read flash to rfile\n");
