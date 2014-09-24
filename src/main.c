@@ -154,10 +154,10 @@ int main(int argc, char** argv)
 				page_limit = atoi(optarg);
 				break;
 			case 'v': // vid
-				vid = atoi(optarg);
+				vid = (uint16_t)strtol(optarg, NULL, 0);
 				break;
-			case 'p': // vid
-				pid = atoi(optarg);
+			case 'p': // pid
+				pid = (uint16_t)strtol(optarg, NULL, 0);
 				break;
 			case 'P':
 				if (port != NULL) {
