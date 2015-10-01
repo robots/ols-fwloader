@@ -34,7 +34,7 @@ I suggest to use `--prefix` parameter for configure.
 
 Git repository can be found here:
 
-  http://github.com/robots/ols-fwloader
+  https://github.com/robots/ols-fwloader
 
 This tool is created and maintaned by Michal Demin <michal.demin@gmail.com>
 Feel free to send suggestions, improvements, patches.
