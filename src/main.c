@@ -52,21 +52,21 @@ static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, 
 static void usage()
 {
 	printf(PACKAGE_STRING " Copyright (C) 2011 Michal Demin\n");
-  printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
+    printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
 	printf("This is free software, and you are welcome to redistribute it\n");
 	printf("under certain conditions. See COPYING\n\n");
 
 	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
-	printf("  -V      - verify Flash against wfile\n");
+	printf("  -V      - verify flash against wfile\n");
 	printf("  -E      - erase flash\n");
-	printf("  -W      - erase and write flash with wfile\n");
+	printf("  -W      - erase and write flash from wfile\n");
 	printf("  -R      - read flash to rfile\n");
 	printf("  -T      - reset device at the end\n\n");
 	printf("  -t type - File type (BIN/HEX) (default: " DEFAULT_TYPE ")\n");
 	printf("  -w file - file to be read and written to flash\n");
 	printf("  -r file - file where the flash content should be written to\n");
-	printf("  -d      - be verbosse\n");
+	printf("  -d      - be verbose\n");
 
 	printf("BOOT only options: \n");
 	printf("  -p pid  - Set usb PID (default: 0x%04x)\n", OLS_PID);
@@ -77,16 +77,7 @@ static void usage()
 	printf("  -P port - Serial port device\n");
 	printf("  -l num  - Limit number of read/written pages to num\n");
 	printf("  -S      - run selftest\n");
-
-	printf("\n\n");
-	printf("Write PIC firmware with verification, enter bootloader first:\n");
-	printf(" ols-fwloader -f BOOT -n -P /dev/ttyACM0 -V -W -w firmware.hex\n");
-	printf("Write FPGA bitstream (HEX):\n");
-	printf(" ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.mcs\n");
-	printf("Write FPGA bitstream (BIN):\n");
-	printf(" ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.bit -t BIN\n");
 	printf("\n");
-
 }
 
 int main(int argc, char** argv)
@@ -253,7 +244,7 @@ int main(int argc, char** argv)
 		ols = OLS_Init(port, 921600);
 
 		if (ols == NULL) {
-			fprintf(stderr, "Unable to open OLS\n");
+			fprintf(stderr, "Unable to initialise OLS\n");
 			exit(-1);
 		}
 
@@ -278,7 +269,7 @@ int main(int argc, char** argv)
 
 	// Initialize bootloader
 	if (device & DEV_BOOT) {
-		ob = BOOT_Init(vid, pid);
+		ob = BOOT_Init(vid, pid, debug);
 		if (ob == NULL) {
 			exit(1);
 		}

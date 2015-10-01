@@ -60,7 +60,7 @@ struct ols_boot_t {
 	uint8_t cmd_id;
 };
 
-struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid);
+struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid, int debug);
 uint8_t BOOT_Version(struct ols_boot_t *ob);
 uint8_t BOOT_Read(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t size);
 uint8_t BOOT_Write(struct ols_boot_t *ob, uint16_t addr, uint8_t *buf, uint16_t size);
