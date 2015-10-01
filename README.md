@@ -15,7 +15,7 @@ All input files are autodetected.
 
 * linux:
   *  cdc_acm support in kernel
-  *  libusb 1.0
+  *  libusb 1.0 (install libusb-1.0.0-dev)
 * win:
   *  cdc acm driver
 
@@ -36,5 +36,5 @@ Git repository can be found here:
 
   https://github.com/robots/ols-fwloader
 
-This tool is created and maintaned by Michal Demin <michal.demin@gmail.com>
+This tool is created and maintained by Michal Demin <michal.demin@gmail.com>
 Feel free to send suggestions, improvements, patches.
