@@ -39,3 +39,35 @@ Git repository can be found here:
 
 This tool is created and maintained by Michal Demin <michal.demin@gmail.com>
 Feel free to send suggestions, improvements, patches.
+
+## Usage Examples
+
+To use BOOT mode (reading/writing the PIC), you will first need to press RESET while the PGC and PGD terminals are jumpered. The ACT and PWR LEDs will be lit. Note that this is different from resetting while pressing the UPDATE button, which is for FPGA firmware update.
+
+In BOOT mode, the device will identify itself (see it with `lsusb` on linux) as 04d8:fc90 whereas in warm (sniffer operating) mode, the device will be 04d8:fc92.
+
+You may need to run ols-fwloader as root (`sudo ols-fwloader ...`) to use the USB device directly in BOOT mode.
+
+Read current OLS PIC firmware into a file:
+
+```
+ols-fwloader -f BOOT -t HEX -R -r current-pic-firmware.hex
+```
+
+Write PIC firmware with verification, enter bootloader first:
+
+```
+ols-fwloader -f BOOT -n -P /dev/ttyACM0 -V -W -w new-firmware.hex
+```
+
+Write FPGA bitstream (HEX):
+
+```
+ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.mcs
+```
+
+Write FPGA bitstream (BIN):
+
+```
+ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.bit -t BIN
+```

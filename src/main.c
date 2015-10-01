@@ -77,16 +77,7 @@ static void usage()
 	printf("  -P port - Serial port device\n");
 	printf("  -l num  - Limit number of read/written pages to num\n");
 	printf("  -S      - run selftest\n");
-
-	printf("\n\n");
-	printf("Write PIC firmware with verification, enter bootloader first:\n");
-	printf(" ols-fwloader -f BOOT -n -P /dev/ttyACM0 -V -W -w firmware.hex\n");
-	printf("Write FPGA bitstream (HEX):\n");
-	printf(" ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.mcs\n");
-	printf("Write FPGA bitstream (BIN):\n");
-	printf(" ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.bit -t BIN\n");
 	printf("\n");
-
 }
 
 int main(int argc, char** argv)
