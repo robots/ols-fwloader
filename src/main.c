@@ -52,21 +52,21 @@ static int memverify(uint8_t *ref, uint8_t *mem, uint32_t len, uint32_t offset, 
 static void usage()
 {
 	printf(PACKAGE_STRING " Copyright (C) 2011 Michal Demin\n");
-  printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
+    printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
 	printf("This is free software, and you are welcome to redistribute it\n");
 	printf("under certain conditions. See COPYING\n\n");
 
 	printf("ols-fwloader [-d] [-V] [-W] [-R] [-E] [-r rfile] [-w wfile] [-t type] [-v vid] [-p pid]\n\n");
 	printf("  -f dev  - select which device to work with (BOOT or APP)\n");
-	printf("  -V      - verify Flash against wfile\n");
+	printf("  -V      - verify flash against wfile\n");
 	printf("  -E      - erase flash\n");
-	printf("  -W      - erase and write flash with wfile\n");
+	printf("  -W      - erase and write flash from wfile\n");
 	printf("  -R      - read flash to rfile\n");
 	printf("  -T      - reset device at the end\n\n");
 	printf("  -t type - File type (BIN/HEX) (default: " DEFAULT_TYPE ")\n");
 	printf("  -w file - file to be read and written to flash\n");
 	printf("  -r file - file where the flash content should be written to\n");
-	printf("  -d      - be verbosse\n");
+	printf("  -d      - be verbose\n");
 
 	printf("BOOT only options: \n");
 	printf("  -p pid  - Set usb PID (default: 0x%04x)\n", OLS_PID);
