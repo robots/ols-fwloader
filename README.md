@@ -22,8 +22,9 @@ All input files are autodetected.
 
 ## Building:
 
-```
 From git repository first run:
+
+```
 $ autoreconf --install
 
 $ ./configure
@@ -33,18 +34,11 @@ $ make install
 
 I suggest to use `--prefix` parameter for configure.
 
-Git repository can be found here:
-
-  https://github.com/robots/ols-fwloader
-
-This tool is created and maintained by Michal Demin <michal.demin@gmail.com>
-Feel free to send suggestions, improvements, patches.
-
 ## Usage Examples
 
 To use BOOT mode (reading/writing the PIC), you will first need to press RESET while the PGC and PGD terminals are jumpered. The ACT and PWR LEDs will be lit. Note that this is different from resetting while pressing the UPDATE button, which is for FPGA firmware update.
 
-In BOOT mode, the device will identify itself (see it with `lsusb` on linux) as 04d8:fc90 whereas in warm (sniffer operating) mode, the device will be 04d8:fc92.
+In BOOT mode, the device will identify itself (see it with `lsusb` on linux) as 04d8:fc90 whereas in warm (logic analyser operating) mode, the device will be 04d8:fc92.
 
 You may need to run ols-fwloader as root (`sudo ols-fwloader ...`) to use the USB device directly in BOOT mode.
 
@@ -71,3 +65,12 @@ Write FPGA bitstream (BIN):
 ```
 ols-fwloader -f APP -P /dev/ttyACM0 -W -w bitstream.bit -t BIN
 ```
+
+# Contributions
+
+Git repository can be found here:
+
+  https://github.com/robots/ols-fwloader
+
+This tool is created and maintained by Michal Demin <michal.demin@gmail.com>
+Feel free to send suggestions, improvements, patches.
