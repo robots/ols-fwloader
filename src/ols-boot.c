@@ -116,7 +116,7 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid, int debug)
 #else
 	ret = libusb_init(&ob->ctx);
 	if (ret != 0) {
-		fprintf(stderr, "libusb_init proobem\n");
+		fprintf(stderr, "libusb_init problem\n");
 	}
 
 	if (debug) {
