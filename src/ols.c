@@ -227,6 +227,11 @@ int OLS_GetID(struct ols_t *ols)
 		return -1;
 	}
 
+	if (ret[0] != 'H' || ret[2] != 'F' || ret[5] != 'B') {
+		printf("Error reading OLS id - invalid data returned\n");
+		return -1;
+	}
+
 	printf("Found OLS HW: %d, FW: %d.%d, Boot: %d\n", ret[1], ret[3], ret[4], ret[6]);
 	return 0;
 }
@@ -288,6 +293,11 @@ int OLS_GetFlashID(struct ols_t *ols) {
 	res = serial_read(ols->fd, ret, 4);
 	if (res != 4) {
 		printf("Error reading JEDEC ID\n");
+		return -1;
+	}
+
+	if (ret[0] == 'H' && ret[2] == 'F') {
+		printf("Error reading flash id - OLS id was returned instead\n");
 		return -1;
 	}
 
