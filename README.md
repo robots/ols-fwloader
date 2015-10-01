@@ -16,7 +16,8 @@ All input files are autodetected.
 * linux:
   *  cdc_acm support in kernel
   *  libusb 1.0 (install libusb-1.0.0-dev)
-* win:
+  *  autoconf (to build from the GIT repository)
+* Windows:
   *  cdc acm driver
 
 ## Building:
