@@ -253,7 +253,7 @@ int main(int argc, char** argv)
 		ols = OLS_Init(port, 921600);
 
 		if (ols == NULL) {
-			fprintf(stderr, "Unable to open OLS\n");
+			fprintf(stderr, "Unable to initialise OLS\n");
 			exit(-1);
 		}
 
