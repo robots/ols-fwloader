@@ -26,7 +26,7 @@
 #include "boot_if.h"
 #include "ols-boot.h"
 
-struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
+struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid, int debug)
 {
 #if IS_WIN32
 	GUID HidGuid;
@@ -119,7 +119,10 @@ struct ols_boot_t *BOOT_Init(uint16_t vid, uint16_t pid)
 		fprintf(stderr, "libusb_init proobem\n");
 	}
 
-	libusb_set_debug(ob->ctx, 4);
+	if (debug) {
+		libusb_set_debug(ob->ctx, 4);
+	}
+
 	ob->dev = libusb_open_device_with_vid_pid(ob->ctx, vid, pid);
 	if (ob->dev == NULL) {
 		fprintf(stderr, "USB Device (%04x:%04x) not found, is OLS in bootloader mode ?\n", vid, pid);

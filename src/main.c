@@ -278,7 +278,7 @@ int main(int argc, char** argv)
 
 	// Initialize bootloader
 	if (device & DEV_BOOT) {
-		ob = BOOT_Init(vid, pid);
+		ob = BOOT_Init(vid, pid, debug);
 		if (ob == NULL) {
 			exit(1);
 		}
