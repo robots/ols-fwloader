@@ -20,13 +20,19 @@ All input files are autodetected.
 * Windows:
   *  cdc acm driver
 
-## Building:
+## Building
 
-From git repository first run:
+### From a git repository
+
+At first do this, then follow the tarball instructions
 
 ```
 $ autoreconf --install
+```
 
+### From a tarball
+
+```
 $ ./configure
 $ make
 $ make install
