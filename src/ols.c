@@ -138,7 +138,7 @@ int OLS_RunSelftest(struct ols_t *ols)
 
 	retry=0;
 	while (1) {
-		res = serial_read(ols->fd, &status, 1);
+		res = serial_read(ols->fd, &status, 1, 100);
 
 		if (res < 1) {
 			retry ++;
@@ -194,7 +194,7 @@ int OLS_GetStatus(struct ols_t *ols)
 		return -2;
 	}
 
-	res = serial_read(ols->fd, &status, 1);
+	res = serial_read(ols->fd, &status, 1, 100);
 
 	if (res != 1) {
 		printf("Error reading OLS status\n");
@@ -221,7 +221,7 @@ int OLS_GetID(struct ols_t *ols)
 		return -2;
 	}
 
-	res = serial_read(ols->fd, ret, 7);
+	res = serial_read(ols->fd, ret, 7, 10);
 	if (res != 7) {
 		printf("Error reading OLS id\n");
 		return -1;
@@ -290,7 +290,7 @@ int OLS_GetFlashID(struct ols_t *ols) {
 		return -2;
 	}
 
-	res = serial_read(ols->fd, ret, 4);
+	res = serial_read(ols->fd, ret, 4, 10);
 	if (res != 4) {
 		printf("Error reading JEDEC ID\n");
 		return -1;
@@ -343,7 +343,7 @@ int OLS_FlashErase(struct ols_t *ols)
 	printf("Chip erase ... ");
 
 	while (1) {
-		res = serial_read(ols->fd, &status, 1);
+		res = serial_read(ols->fd, &status, 1, 100);
 
 		if (res <1) {
 			retry ++;
@@ -406,7 +406,7 @@ int OLS_FlashRead(struct ols_t *ols, uint16_t page, uint8_t *buf)
 		return -2;
 	}
 
-	res = serial_read(ols->fd, buf, ols->flash->page_size);
+	res = serial_read(ols->fd, buf, ols->flash->page_size, 100);
 
 	if (res == ols->flash->page_size) {
 		if (ols->verbose)
@@ -462,7 +462,7 @@ int OLS_FlashWrite(struct ols_t *ols, uint16_t page, uint8_t *buf)
 		return -2;
 	}
 
-	res = serial_read(ols->fd, &status, 1);
+	res = serial_read(ols->fd, &status, 1, 100);
 
 	if (res != 1) {
 		printf("Page writing timeout\n");

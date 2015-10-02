@@ -98,7 +98,7 @@ int serial_setup(int fd, unsigned long speed)
 	t_opt.c_oflag &= ~(OCRNL | ONLCR);
 	t_opt.c_oflag &= ~OPOST;
 	t_opt.c_cc[VMIN] = 0;
-	t_opt.c_cc[VTIME] = 10;
+	t_opt.c_cc[VTIME] = 1;
 
 #if IS_DARWIN
 	if( tcsetattr(fd, TCSANOW, &t_opt) < 0 ) {
@@ -141,11 +141,11 @@ int serial_write(int fd, const char *buf, int size)
 	return ret;
 }
 
-int serial_read(int fd, char *buf, int size)
+int serial_read(int fd, char *buf, int size, int timeout)
 {
 	int len = 0;
 	int ret = 0;
-	int timeout = 0;
+
 #if IS_WIN32
 	HANDLE hCom = (HANDLE)fd;
 	unsigned long bread = 0;
@@ -167,9 +167,9 @@ int serial_read(int fd, char *buf, int size)
 		}
 
 		if (ret == 0) {
-			timeout++;
+			timeout--;
 
-			if (timeout >= 10)
+			if (timeout <= 0)
 				break;
 
 			continue;
