@@ -214,18 +214,43 @@ int OLS_GetID(struct ols_t *ols)
 	uint8_t cmd[4] = {0x00, 0x00, 0x00, 0x00};
 	uint8_t ret[7];
 	int res;
+	int i;
 
-	res = serial_write(ols->fd, cmd, 4);
-	if (res != 4) {
-		printf("Error writing to OLS\n");
-		return -2;
+	ret[0] = 0x00;
+
+	for (i = 0; i < 7; i++) {
+		/* Write a single 0x00 until we get a response */
+		res = serial_write(ols->fd, cmd, 1);
+
+		if (res != 1) {
+			printf("Error writing to OLS\n");
+			return -2;
+		}
+
+		res = serial_read(ols->fd, ret, 1, 1);
+		if (res == 1) {
+			if (ret[0] == 'H') {
+				/* Found response */
+				break;
+			}
+			/* Ignore anything else */
+		}
 	}
 
-	res = serial_read(ols->fd, ret, 7, 10);
-	if (res != 7) {
-		printf("Error reading OLS id\n");
+	if (ret[0] != 'H') {
+		printf("Error reading OLS version id\n");
 		return -1;
 	}
+
+	/* Read the following 6 response bytes */
+
+	res = serial_read(ols->fd, ret + 1, 6, 10);
+	if (res != 6) {
+		printf("Error reading OLS version id\n");
+		return -1;
+	}
+
+	/* Now the sender and receiver are in sync */
 
 	if (ret[0] != 'H' || ret[2] != 'F' || ret[5] != 'B') {
 		printf("Error reading OLS id - invalid data returned\n");
